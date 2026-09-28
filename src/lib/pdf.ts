@@ -1,12 +1,13 @@
 export async function extractPdfText(buf: Buffer): Promise<string> {
-  const { getDocument, GlobalWorkerOptions } = await import(
+  const { getDocument } = await import(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore — pdfjs-dist v6 legacy ESM, no bundled types for this path
     'pdfjs-dist/legacy/build/pdf.mjs'
   )
-
-  // Disable web worker — we're running server-side in Node.js
-  GlobalWorkerOptions.workerSrc = ''
+  // Note: don't set GlobalWorkerOptions.workerSrc — pdfjs-dist's own static
+  // init already points it at "./pdf.worker.mjs" (relative to this module)
+  // and runs it in-process when it detects Node.js. Overriding it here
+  // breaks that auto-detection and causes "fake worker" setup to fail.
 
   const data = new Uint8Array(buf)
   const doc = await getDocument({
