@@ -34,8 +34,12 @@ export async function POST(
     ? 'Your application to Kargo — next steps'
     : 'Your Kargo application'
 
-  await sendEmail(pii.email, subject, body)
-  await sql`UPDATE candidates SET email_sent = true, email_sent_at = NOW() WHERE id = ${id}::uuid`
+  try {
+    await sendEmail(pii.email, subject, body)
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
 
+  await sql`UPDATE candidates SET email_sent = true, email_sent_at = NOW() WHERE id = ${id}::uuid`
   return NextResponse.json({ success: true })
 }

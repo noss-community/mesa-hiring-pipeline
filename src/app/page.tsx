@@ -31,6 +31,7 @@ function PassBadge({ pass }: { pass: boolean | null }) {
 
 function CandidateCard({ c, role, onSent }: { c: Candidate; role: Role; onSent: () => void }) {
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
   const prefix = role.toLowerCase() as 'pm' | 'spm'
   const total = c[`${prefix}_total` as keyof Candidate] as number | null
   const pass  = c[`${prefix}_pass`  as keyof Candidate] as boolean | null
@@ -41,9 +42,20 @@ function CandidateCard({ c, role, onSent }: { c: Candidate; role: Role; onSent: 
 
   async function send() {
     setSending(true)
-    await fetch(`/api/send-email/${c.id}`, { method: 'POST' })
-    onSent()
-    setSending(false)
+    setSendError(null)
+    try {
+      const res = await fetch(`/api/send-email/${c.id}`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setSendError(data.error ?? `Send failed (${res.status})`)
+        return
+      }
+      onSent()
+    } catch {
+      setSendError('Network error — email not sent')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -115,6 +127,9 @@ function CandidateCard({ c, role, onSent }: { c: Candidate; role: Role; onSent: 
           >
             {sending ? 'Sending…' : 'Send email'}
           </button>
+        )}
+        {sendError && (
+          <span className="text-xs text-red-500 truncate" title={sendError}>⚠ {sendError}</span>
         )}
         {c.status === 'error' && (
           <span className="text-xs text-red-500 truncate">Error: {c.error_message}</span>
