@@ -11,8 +11,17 @@ export default function UploadPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
-    setLoading(true)
+
     const data = new FormData(e.currentTarget)
+    const file = data.get('cv') as File | null
+    // Vercel rejects request bodies over 4.5MB before our code even runs —
+    // catch it here with a message the user can actually act on.
+    if (file && file.size > 4 * 1024 * 1024) {
+      setError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB) — please upload a PDF under 4MB.`)
+      return
+    }
+
+    setLoading(true)
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: data })
       const json: unknown = await res.json()
