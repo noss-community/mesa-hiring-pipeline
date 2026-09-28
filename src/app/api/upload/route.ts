@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { extractPII, scoreCV, generateBrief, draftEmail } from '@/lib/claude'
 import { computeTotal, checkPass } from '@/lib/rubric'
+import { extractPdfText } from '@/lib/pdf'
 import type { Role } from '@/types'
 
 export const maxDuration = 60
@@ -18,10 +19,7 @@ export async function POST(req: NextRequest) {
 
     const buf = Buffer.from(await file.arrayBuffer())
     if (file.name.endsWith('.pdf') || file.type === 'application/pdf') {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse/lib/pdf-parse')
-      const parsed = await pdfParse(buf)
-      cvText = parsed.text as string
+      cvText = await extractPdfText(buf)
     } else {
       cvText = buf.toString('utf-8')
     }
