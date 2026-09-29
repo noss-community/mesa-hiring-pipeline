@@ -131,9 +131,6 @@ function CandidateCard({ c, role, onSent }: { c: Candidate; role: Role; onSent: 
         {sendError && (
           <span className="text-xs text-red-500 truncate" title={sendError}>⚠ {sendError}</span>
         )}
-        {c.status === 'error' && (
-          <span className="text-xs text-red-500 truncate">Error: {c.error_message}</span>
-        )}
       </div>
     </div>
   )

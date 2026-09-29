@@ -21,6 +21,7 @@ export async function GET() {
         ) AS candidate_pii
       FROM candidates c
       LEFT JOIN candidate_pii p ON p.candidate_id = c.id
+      WHERE c.status IS DISTINCT FROM 'error'
       GROUP BY c.id
       ORDER BY c.created_at DESC
     `
